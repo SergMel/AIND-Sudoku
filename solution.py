@@ -26,34 +26,50 @@ boxes = cross(rows, cols)
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-unitlist = row_units + column_units + square_units
+diagonal_units = [[rows[i]+cols[i] for i in range(9)], [rows[i]+cols[8 - i] for i in range(9)]]
+unitlist = row_units + column_units + square_units + diagonal_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
-def is_twins(box1, box2, values):
-    if len(values[box1]) == len(values[box2]):
-        for v in values[box1]:
-            if v not in values[box2]:
+""""""
+def is_values_twins(v1, v2):
+    if len(v1) > 0 and len(v1) == len(v2):
+        for c in v1:
+            if c not in v2:
                 return False;
         return True
-    return False              
+    return False
+
+def is_twins(box1, box2, values):
+    return is_values_twins(values[box1], values[box2])  
 
 def find_twins( unit, values):
     res = []
     for i in range(0, len(unit) - 1):
+        if len(values[unit[i]]) != 2:
+            continue
+        
         for j in range(i+1, len(unit)):
-           if is_twins(unit[i], unit[j], values) == True and values[unit[i]] not in res:
-               res.add(values[unit[i]])
+            if len(values[unit[j]]) != 2:
+                continue
+            if is_twins(unit[i], unit[j], values) == True and values[unit[i]] not in res:
+               "print(unit[i] + ' ' + values[unit[i]])"
+               res.append(values[unit[i]])
+               break
+   
     return res
        
 def twins_elimination(unit, values):
     twins = find_twins(unit, values)
-    for b in unit:
-        
-                       
-                
-                       
-                       
+    for v in twins:
+        cnt = 2
+        for b in unit:
+            if is_values_twins(v, values[b])==True and cnt > 0:
+                cnt-=1
+                continue
+            for char in v:                
+                assign_value(values, b, values[b].replace(char,''))
+    return values         
         
 
 def naked_twins(values):
@@ -64,9 +80,11 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
-    for u in units:
-        for b in u:
-            if 
+    
+    for u in unitlist:
+        twins_elimination(u, values)
+
+    return values
                 
 
 def grid_values(grid):
@@ -134,6 +152,9 @@ def reduce_puzzle(values):
 
 def search(values):
     values = reduce_puzzle(values)
+    if values == False:
+        return False
+    "values = naked_twins(values)"
     if values == False:
         return False
     minBox = None
