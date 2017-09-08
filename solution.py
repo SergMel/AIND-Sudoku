@@ -17,10 +17,13 @@ def assign_value(values, box, value):
     
 def cross(A, B):
     return [s+t for s in A for t in B]
-
+	
 rows = 'ABCDEFGHI'
 cols = '123456789'
 
+"""
+Cells from sudoku grid
+"""
 boxes = cross(rows, cols)
 
 row_units = [cross(r, cols) for r in rows]
@@ -31,8 +34,17 @@ unitlist = row_units + column_units + square_units + diagonal_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
-""""""
+
 def is_values_twins(v1, v2):
+    """Determine if two strings contain same didgits.
+    Args:
+        v1: first string
+		v2: second string
+
+    Returns:
+        True - if two strings contain same digits, False - othrwise
+    """
+
     if len(v1) > 0 and len(v1) == len(v2):
         for c in v1:
             if c not in v2:
@@ -40,10 +52,28 @@ def is_values_twins(v1, v2):
         return True
     return False
 
+	
 def is_twins(box1, box2, values):
+    """Determine if two sudoku values from given sudoku-field contain same didgits.
+    Args:
+        box1: first cell position
+		box2: second cell position
+
+    Returns:
+        True - if two values at fiven cells contain same digits, False - othrwise
+    """
     return is_values_twins(values[box1], values[box2])  
 
+	
 def find_twins( unit, values):
+    """ find twins in given unit and return twin values
+    Args:
+        unit: unit where twins cells is searched
+		values: values of sudoku-fields
+
+    Returns:
+        list of values of twins cells
+    """
     res = []
     for i in range(0, len(unit) - 1):
         if len(values[unit[i]]) != 2:
@@ -60,9 +90,17 @@ def find_twins( unit, values):
     return res
        
 def twins_elimination(unit, values):
+    """ removes twin values from other cells(that not twins)
+    Args:
+        unit: unit where twins would be eliminated
+		values: values of sudoku-fields
+
+    Returns:
+        new sudoku-field after elimination
+    """
     twins = find_twins(unit, values)
     for v in twins:
-        cnt = 2
+        cnt = 2	# numer of twins to skip
         for b in unit:
             if is_values_twins(v, values[b])==True and cnt > 0:
                 cnt-=1
@@ -122,6 +160,12 @@ def display(values):
     return
 
 def eliminate(values):
+    """
+    Go through all the boxes, and whenever there is a box with a value, eliminate this value from the values of all its peers.
+    Input: A sudoku in dictionary form.
+    Output: The resulting sudoku in dictionary form.
+    """
+	
     solved_values = [box for box in values.keys() if len(values[box]) == 1]
     for box in solved_values:
         digit = values[box]
@@ -130,6 +174,11 @@ def eliminate(values):
     return values
 
 def only_choice(values):
+    """
+    Go through all the units, and whenever there is a unit with a value that only fits in one box, assign the value to this box.
+    Input: A sudoku in dictionary form.
+    Output: The resulting sudoku in dictionary form.
+    """
     for unit in unitlist:
         for digit in '123456789':
             dplaces = [box for box in unit if digit in values[box]]
@@ -138,6 +187,14 @@ def only_choice(values):
     return values
 
 def reduce_puzzle(values):
+    """
+    Iterate eliminate() and only_choice(). If at some point, there is a box with no available values, return False.
+    If the sudoku is solved, return the sudoku.
+    If after an iteration of both functions, the sudoku remains the same, return the sudoku.
+    Input: A sudoku in dictionary form.
+    Output: The resulting sudoku in dictionary form.
+    """
+    
     solved_values = [box for box in values.keys() if len(values[box]) == 1]
     stalled = False
     while not stalled:
@@ -151,12 +208,20 @@ def reduce_puzzle(values):
     return values
 
 def search(values):
+    """
+    Iterate eliminate(), only_choice() and r. If at some point, there is a box with no available values, return False.
+    If the sudoku is solved, return the sudoku.
+    If after an iteration of both functions, the sudoku remains the same, return the sudoku.
+    Input: A sudoku in dictionary form.
+    Output: The resulting sudoku in dictionary form.
+    """
+
     values = reduce_puzzle(values)
     if values == False:
         return False
-    "values = naked_twins(values)"
-    if values == False:
-        return False
+    # values = naked_twins(values)
+    # if values == False:
+        # return False
     minBox = None
     for box in values:
         if len(values[box]) < 1:
@@ -190,8 +255,8 @@ def solve(grid):
     return search(grid_values(grid))
 	
 if __name__ == '__main__':
-    diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    display(solve(diag_sudoku_grid))
+    diag_sudoku_grid = '9.1....8.8.5.7..4.2.4....6...7......5..............83.3..6......9................'
+    solve(diag_sudoku_grid)
 
     try:
         from visualize import visualize_assignments
